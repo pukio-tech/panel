@@ -67,11 +67,49 @@ export interface GymEmpresaDetalle extends Omit<GymEmpresaResumen, "metricas"> {
   facturacionApiKeyConfigurada: boolean;
   consultaApiTokenConfigurado: boolean;
   fechaModificacion: string | null;
+  /** Marca del gimnasio en Gym Manager (null = tema por defecto) */
+  apariencia: GymApariencia;
   /** Últimos 20 cambios de estado (alta, suspensiones, reactivaciones) */
   historialEstado: { id: number; activo: boolean; motivo: string | null; usuario: string; fecha: string }[];
   metricas: GymMetricas;
   usuarios: GymUsuario[];
   urls: { login: string; catalogo: string };
+}
+
+export interface GymApariencia {
+  /** #RRGGBB */
+  colorPrimario: string | null;
+  /** Clave de GYM_TIPOGRAFIAS */
+  tipografia: string | null;
+}
+
+export interface GymPaginado<T> {
+  data: T[];
+  pagination: { total: number; page: number; pageSize: number; pages: number };
+}
+
+export interface GymSocio {
+  id: number;
+  nombreCompleto: string;
+  dni: string;
+  telefono: string | null;
+  email: string | null;
+  estado: "ACTIVO" | "INACTIVO";
+  fechaCreacion: string | null;
+  /** Membresía vigente (null si no tiene) */
+  membresia: { nombre: string; fechaInicio: string; fechaFin: string; congelada: boolean } | null;
+}
+
+export interface GymProducto {
+  id: number;
+  nombre: string;
+  imagenUrl: string | null;
+  precio: number;
+  stock: number;
+  stockMinimo: number;
+  activo: boolean;
+  fechaVencimiento: string | null;
+  categoria: string | null;
 }
 
 export interface GymPlanPlataforma {
@@ -116,6 +154,8 @@ export interface GymEmpresaInput {
   /** string = guardar; "" o null = borrar; ausente = no cambiar */
   facturacionApiKey?: string | null;
   consultaApiToken?: string | null;
+  colorPrimario?: string | null;
+  tipografia?: string | null;
 }
 
 export interface GymNuevaEmpresa extends GymEmpresaInput {

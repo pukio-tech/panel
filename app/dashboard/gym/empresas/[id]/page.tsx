@@ -10,6 +10,7 @@ import {
   Button,
   ButtonLink,
   EmptyState,
+  FilterPills,
   IconButton,
   PageHeader,
   Skeleton,
@@ -17,6 +18,8 @@ import {
   useToast,
 } from "@/components/ui";
 import { CopyIcon, DumbbellIcon, LogInIcon, RefreshIcon } from "@/components/icons";
+import { AparienciaCard } from "@/components/gym/AparienciaCard";
+import { ProductosTab, SociosTab } from "@/components/gym/DatosEmpresaTabs";
 import { DatosGeneralesForm } from "@/components/gym/DatosGeneralesForm";
 import { EstadoCard } from "@/components/gym/EstadoCard";
 import { FacturacionCard } from "@/components/gym/FacturacionCard";
@@ -32,6 +35,8 @@ import {
   useEntrarComoAdmin,
   UsoLimite,
 } from "@/components/gym/shared";
+
+type Pestana = "general" | "apariencia" | "socios" | "productos";
 
 function UrlRow({ label, url }: { label: string; url: string }) {
   const toast = useToast();
@@ -64,6 +69,7 @@ export default function GymEmpresaDetallePage() {
   const { entrar, pendingId } = useEntrarComoAdmin();
   // Remonta los formularios tras guardar para que tomen los nuevos valores iniciales
   const [version, setVersion] = useState(0);
+  const [pestana, setPestana] = useState<Pestana>("general");
   const empresa = data?.data;
 
   function onSaved(e: GymEmpresaDetalle) {
@@ -123,7 +129,7 @@ export default function GymEmpresaDetallePage() {
         back={{ href: GYM_EMPRESAS, label: "Empresas" }}
         subtitle={
           <>
-            <EmpresaLogo nombre={empresa.nombre} logoUrl={empresa.logoUrl} size={24} className="rounded-md" />
+            <EmpresaLogo nombre={empresa.nombre} logoUrl={empresa.logoUrl} size={32} className="rounded-md" />
             <span className="font-mono">{empresa.slug}</span>
             <EstadoBadge activo={empresa.activo} />
             <PlanBadge plan={empresa.plan} nombre={empresa.planNombre} />
@@ -173,39 +179,57 @@ export default function GymEmpresaDetallePage() {
         />
       </div>
 
-      <div className="mt-8 grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
-        <div className="min-w-0 space-y-6">
-          <DatosGeneralesForm key={`datos-${version}`} empresa={empresa} onSaved={onSaved} />
-          <UsuariosCard empresa={empresa} onChanged={reload} />
-          <FacturacionCard key={`fact-${version}`} empresa={empresa} onSaved={onSaved} />
+      <FilterPills<Pestana>
+        className="mt-8 mb-6"
+        value={pestana}
+        onChange={setPestana}
+        options={[
+          { value: "general", label: "General" },
+          { value: "apariencia", label: "Apariencia" },
+          { value: "socios", label: "Socios", count: m.sociosActivos },
+          { value: "productos", label: "Productos" },
+        ]}
+      />
+
+      {pestana === "apariencia" && <AparienciaCard key={`ap-${version}`} empresa={empresa} onSaved={onSaved} />}
+      {pestana === "socios" && <SociosTab empresaId={empresa.id} />}
+      {pestana === "productos" && <ProductosTab empresaId={empresa.id} />}
+
+      {pestana === "general" && (
+        <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
+          <div className="min-w-0 space-y-6">
+            <DatosGeneralesForm key={`datos-${version}`} empresa={empresa} onSaved={onSaved} />
+            <UsuariosCard empresa={empresa} onChanged={reload} />
+            <FacturacionCard key={`fact-${version}`} empresa={empresa} onSaved={onSaved} />
+          </div>
+
+          <aside className="min-w-0 space-y-6">
+            <SectionCard
+              title="Plan y uso"
+              description={`Plan ${empresa.planNombre}. Al llegar al límite no se pueden crear ni reactivar más registros.`}
+              actions={
+                <ButtonLink href={GYM_PLANES} variant="ghost" size="sm">
+                  Ver planes
+                </ButtonLink>
+              }
+            >
+              <div className="space-y-4">
+                <UsoLimite label="Socios activos" usados={m.sociosActivos} maximo={empresa.limites.maxSocios} />
+                <UsoLimite label="Usuarios activos" usados={m.usuariosActivos} maximo={empresa.limites.maxUsuarios} />
+              </div>
+            </SectionCard>
+
+            <SectionCard title="Accesos" description="Enlaces de la empresa en Gym Manager.">
+              <div className="space-y-4">
+                <UrlRow label="Login del gimnasio" url={empresa.urls.login} />
+                <UrlRow label="Catálogo público" url={empresa.urls.catalogo} />
+              </div>
+            </SectionCard>
+
+            <EstadoCard empresa={empresa} onSaved={onSaved} />
+          </aside>
         </div>
-
-        <aside className="min-w-0 space-y-6">
-          <SectionCard
-            title="Plan y uso"
-            description={`Plan ${empresa.planNombre}. Al llegar al límite no se pueden crear ni reactivar más registros.`}
-            actions={
-              <ButtonLink href={GYM_PLANES} variant="ghost" size="sm">
-                Ver planes
-              </ButtonLink>
-            }
-          >
-            <div className="space-y-4">
-              <UsoLimite label="Socios activos" usados={m.sociosActivos} maximo={empresa.limites.maxSocios} />
-              <UsoLimite label="Usuarios activos" usados={m.usuariosActivos} maximo={empresa.limites.maxUsuarios} />
-            </div>
-          </SectionCard>
-
-          <SectionCard title="Accesos" description="Enlaces de la empresa en Gym Manager.">
-            <div className="space-y-4">
-              <UrlRow label="Login del gimnasio" url={empresa.urls.login} />
-              <UrlRow label="Catálogo público" url={empresa.urls.catalogo} />
-            </div>
-          </SectionCard>
-
-          <EstadoCard empresa={empresa} onSaved={onSaved} />
-        </aside>
-      </div>
+      )}
     </>
   );
 }

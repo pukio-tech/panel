@@ -55,10 +55,13 @@ export const gymApi = {
   get: <T>(path: string) => gymFetch<T>(path),
   post: <T>(path: string, body?: unknown) => gymFetch<T>(path, { method: "POST", body }),
   patch: <T>(path: string, body?: unknown) => gymFetch<T>(path, { method: "PATCH", body }),
-  /** Sube una imagen (logo) a Gym Manager; devuelve la URL relativa guardable. */
-  upload: async (file: File) => {
+  /**
+   * Sube una imagen (logo) a Gym Manager; devuelve la URL relativa guardable.
+   * Con `empresaId` se guarda en la carpeta de esa empresa; sin él, en la temporal de plataforma.
+   */
+  upload: async (file: File, empresaId?: number) => {
     const form = new FormData();
     form.append("file", file);
-    return gymFetch<{ url: string }>("upload", { method: "POST", form });
+    return gymFetch<{ url: string }>(empresaId ? `upload?empresaId=${empresaId}` : "upload", { method: "POST", form });
   },
 };

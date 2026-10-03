@@ -54,7 +54,7 @@ function json(status: number, error: string) {
 }
 
 // Solo se exponen estas rutas de la API de plataforma
-const PERMITIDAS = /^(resumen|upload|planes(\/\d+)?|empresas(\/\d+(\/(acceso|usuarios(\/\d+)?))?)?)$/;
+const PERMITIDAS = /^(resumen|upload|planes(\/\d+)?|empresas(\/\d+(\/(acceso|socios|productos|usuarios(\/\d+)?))?)?)$/;
 
 async function proxy(req: Request, { params }: Ctx) {
   const clave = process.env.GYM_PLATFORM_API_KEY;

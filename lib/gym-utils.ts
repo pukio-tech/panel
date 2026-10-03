@@ -93,6 +93,27 @@ export function porcentajeUso(usados: number, maximo: number | null): number | n
 export const PLAN_CODIGO_RE = /^[A-Z0-9_]{2,30}$/;
 
 /* ------------------------------------------------------------------ */
+/* Apariencia (mismas claves que src/lib/tipografias.ts de gym-app)    */
+/* ------------------------------------------------------------------ */
+
+export const GYM_TIPOGRAFIAS = [
+  { value: "inter", label: "Inter", css: "Inter, sans-serif" },
+  { value: "poppins", label: "Poppins", css: "Poppins, sans-serif" },
+  { value: "montserrat", label: "Montserrat", css: "Montserrat, sans-serif" },
+  { value: "roboto", label: "Roboto", css: "Roboto, sans-serif" },
+  { value: "nunito", label: "Nunito", css: "Nunito, sans-serif" },
+  { value: "lato", label: "Lato", css: "Lato, sans-serif" },
+  { value: "open-sans", label: "Open Sans", css: "'Open Sans', sans-serif" },
+  { value: "raleway", label: "Raleway", css: "Raleway, sans-serif" },
+  { value: "dm-sans", label: "DM Sans", css: "'DM Sans', sans-serif" },
+  { value: "plus-jakarta-sans", label: "Plus Jakarta Sans", css: "'Plus Jakarta Sans', sans-serif" },
+] as const;
+
+/** Color por defecto de Gym Manager (verde). */
+export const GYM_COLOR_DEFECTO = "#0f8a5f";
+export const COLOR_HEX_RE = /^#[0-9a-fA-F]{6}$/;
+
+/* ------------------------------------------------------------------ */
 /* Validación (mismas reglas que la API de plataforma)                 */
 /* ------------------------------------------------------------------ */
 

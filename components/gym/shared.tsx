@@ -322,12 +322,15 @@ export function LogoUpload({
   nombre,
   onChange,
   disabled,
+  empresaId,
 }: {
   /** URL relativa guardada (logoUrl) o null. */
   value: string | null;
   nombre: string;
   onChange: (url: string | null) => void;
   disabled?: boolean;
+  /** Empresa existente: el archivo se guarda directamente en su carpeta. */
+  empresaId?: number;
 }) {
   const toast = useToast();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -339,7 +342,7 @@ export function LogoUpload({
     if (file.size > MAX_LOGO_BYTES) return toast("La imagen no debe superar los 2 MB.", "error");
     setUploading(true);
     try {
-      const res = await gymApi.upload(file);
+      const res = await gymApi.upload(file, empresaId);
       onChange(res.url);
       toast("Logo subido.");
     } catch (err) {
