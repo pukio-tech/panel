@@ -117,7 +117,11 @@ export function UsuariosCard({ empresa, onChanged }: { empresa: GymEmpresaDetall
       cell: (u) => (
         <div className="flex items-center gap-3">
           <Avatar name={u.username} />
-          <span className="font-mono text-[13px] font-medium text-ink">{u.username}</span>
+          <span className="font-mono text-[13px] font-medium text-ink">
+            {u.username}
+            {/* Usuario completo con el que inicia sesión */}
+            <span className="font-normal text-muted">@{empresa.slug}</span>
+          </span>
         </div>
       ),
     },
@@ -164,7 +168,7 @@ export function UsuariosCard({ empresa, onChanged }: { empresa: GymEmpresaDetall
     pin: `${formDialog?.type === "pin" && formDialog.user.tienePin ? "Cambiar" : "Asignar"} PIN · ${formDialog && formDialog.type !== "add" ? formDialog.user.username : ""}`,
   };
   const descriptions = {
-    add: "Crea un usuario con rol ADMINISTRADOR para esta empresa.",
+    add: `Crea un usuario con rol ADMINISTRADOR. Ingresará como usuario@${empresa.slug}.`,
     password: "Comparte la nueva contraseña de forma segura: no se volverá a mostrar.",
     pin: "El PIN (4 a 6 dígitos) permite autorizar acciones rápidas en el gimnasio.",
   };

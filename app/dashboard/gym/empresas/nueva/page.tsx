@@ -21,11 +21,6 @@ import { FormShell } from "@/components/forms/FormShell";
 import { errorMessage, GYM_EMPRESAS, LogoUpload, PasswordInput, PlanSelect } from "@/components/gym/shared";
 
 const slugFrom = (nombre: string) => slugify(nombre).slice(0, 40).replace(/-+$/, "");
-/** Usuario sugerido: único en toda la plataforma (el login solo pide usuario y contraseña). */
-const usuarioFrom = (nombre: string) => {
-  const base = slugFrom(nombre).replace(/-/g, "").slice(0, 30);
-  return base ? `admin.${base}` : "";
-};
 
 const INITIAL = {
   nombre: "",
@@ -36,7 +31,7 @@ const INITIAL = {
   telefono: "",
   email: "",
   plan: "BASICO",
-  username: "",
+  username: "admin",
   password: "",
   pin: "",
 };
@@ -63,7 +58,6 @@ export default function NuevaGymEmpresaPage() {
   const toast = useToast();
   const { values, setValue, setValues, bind } = useForm(INITIAL);
   const [slugEdited, setSlugEdited] = useState(false);
-  const [usuarioEditado, setUsuarioEditado] = useState(false);
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -137,12 +131,7 @@ export default function NuevaGymEmpresaPage() {
               placeholder="Ej. Titan Gym Miraflores"
               onChange={(e) => {
                 const nombre = e.target.value;
-                setValues((v) => ({
-                  ...v,
-                  nombre,
-                  slug: slugEdited ? v.slug : slugFrom(nombre),
-                  username: usuarioEditado ? v.username : usuarioFrom(nombre),
-                }));
+                setValues((v) => ({ ...v, nombre, slug: slugEdited ? v.slug : slugFrom(nombre) }));
               }}
             />
           </Field>
@@ -255,18 +244,21 @@ export default function NuevaGymEmpresaPage() {
             htmlFor="username"
             required
             error={errors.username}
-            hint="Único en toda la plataforma: con él y la contraseña se ingresa (sin código de gimnasio)."
+            hint={
+              <>
+                Ingresará como{" "}
+                <span className="font-mono text-ink-soft">
+                  {values.username || "usuario"}@{slugPreview}
+                </span>
+              </>
+            }
           >
             <Input
               id="username"
               autoComplete="off"
               value={values.username}
-              placeholder="admin.titangym"
               aria-invalid={Boolean(errors.username) || undefined}
-              onChange={(e) => {
-                setUsuarioEditado(true);
-                setValue("username", e.target.value);
-              }}
+              onChange={bind("username")}
             />
           </Field>
           <Field label="PIN" htmlFor="pin" error={errors.pin} hint="Opcional. 4 a 6 dígitos para acciones rápidas.">
