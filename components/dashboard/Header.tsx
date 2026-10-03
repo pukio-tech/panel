@@ -6,14 +6,6 @@ import { MenuIcon, PlusIcon, SearchIcon } from "@/components/icons";
 import { Menu } from "@/components/ui";
 import { AppSwitcher } from "./AppSwitcher";
 
-/** Acciones del botón «+ Crear» (equivalente a «Create New» de Vercel). */
-const CREATE_ITEMS = [
-  { label: "Lugar turístico", href: "/dashboard/opendata/lugares/nuevo" },
-  { label: "Museo", href: "/dashboard/opendata/museos/nuevo" },
-  { label: "Empresa", href: "/dashboard/opendata/empresas/nuevo" },
-  { label: "Artículo del blog", href: "/dashboard/opendata/blog/nuevo" },
-];
-
 export function Header({
   onMenuClick,
   onSearchClick,
@@ -24,6 +16,8 @@ export function Header({
   const pathname = usePathname();
   const app = getAppByPath(pathname);
   const item = getActiveItem(app, pathname);
+  /** Acciones del botón «+ Crear» (equivalente a «Create New» de Vercel), según la app actual. */
+  const createItems = (app.quickActions ?? []).map((a) => ({ label: a.label, href: a.href }));
 
   return (
     <header className="sticky top-0 z-20 flex h-16 items-center gap-2 bg-canvas/85 px-4 backdrop-blur-md sm:px-8">
@@ -58,16 +52,18 @@ export function Header({
         <SearchIcon width={18} height={18} />
       </button>
 
-      <Menu
-        label="Crear"
-        items={CREATE_ITEMS}
-        trigger={
-          <>
-            <PlusIcon width={16} height={16} />
-            <span className="max-sm:hidden">Crear</span>
-          </>
-        }
-      />
+      {createItems.length > 0 && (
+        <Menu
+          label="Crear"
+          items={createItems}
+          trigger={
+            <>
+              <PlusIcon width={16} height={16} />
+              <span className="max-sm:hidden">Crear</span>
+            </>
+          }
+        />
+      )}
     </header>
   );
 }

@@ -1,18 +1,19 @@
 "use client";
 
-import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState, useSyncExternalStore } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import {
   api,
   clearSession,
   getToken,
   getUser,
-  getUserSnapshot,
   isTokenExpired,
   setSession,
   subscribeSession,
   type SessionUser,
 } from "@/lib/api";
+import { appsDelUsuario, esSuperadmin, getActiveItem, getAppByPath, puedeAccederApp } from "@/lib/apps";
+import { useSessionUser } from "@/lib/hooks/useSessionUser";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import { Header } from "@/components/dashboard/Header";
 import { CommandPalette } from "@/components/dashboard/CommandPalette";
@@ -25,16 +26,22 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   // `undefined` en servidor/hidratación → aún no sabemos si hay sesión.
   const token = useSyncExternalStore(subscribeSession, getToken, () => undefined);
-  const userRaw = useSyncExternalStore(subscribeSession, getUserSnapshot, () => null);
-  const user = useMemo<SessionUser | null>(() => {
-    try {
-      return userRaw ? JSON.parse(userRaw) : null;
-    } catch {
-      return null;
-    }
-  }, [userRaw]);
+  const user = useSessionUser();
+  const pathname = usePathname();
 
   const authenticated = typeof token === "string" && !isTokenExpired(token);
+
+  // Acceso por app: el usuario solo entra a las apps asignadas (el backend también lo valida).
+  const app = getAppByPath(pathname);
+  const item = getActiveItem(app, pathname);
+  const acceso = puedeAccederApp(app, user);
+  const denegado = acceso === false || Boolean(item?.adminOnly && user && !esSuperadmin(user));
+
+  useEffect(() => {
+    if (!authenticated || !denegado) return;
+    const destino = appsDelUsuario(user).find((a) => !a.system);
+    router.replace(destino ? destino.basePath : "/dashboard/sistema/cuenta");
+  }, [authenticated, denegado, user, router]);
 
   // Guard de autenticación: sin token válido → /login
   useEffect(() => {
@@ -76,7 +83,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     router.replace("/login");
   }
 
-  if (!authenticated) {
+  if (!authenticated || denegado) {
     return (
       <div className="flex min-h-screen items-center justify-center text-muted">
         <Spinner className="h-6 w-6" />

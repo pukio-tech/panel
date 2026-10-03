@@ -19,6 +19,8 @@ export interface SessionUser {
   email: string;
   name?: string | null;
   role: string;
+  /** Apps del panel a las que tiene acceso (ADMIN: todas). */
+  apps?: string[];
 }
 
 /* ------------------------------------------------------------------ */
