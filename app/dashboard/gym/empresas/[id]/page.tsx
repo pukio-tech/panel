@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import type { GymEmpresaDetalle } from "@/lib/gym-types";
 import { formatDate, formatInt, formatPEN, formatRelative } from "@/lib/gym-utils";
 import { useGymData } from "@/lib/hooks/useGymData";
@@ -21,6 +21,7 @@ import { CopyIcon, DumbbellIcon, LogInIcon, RefreshIcon } from "@/components/ico
 import { AparienciaCard } from "@/components/gym/AparienciaCard";
 import { ProductosTab, SociosTab } from "@/components/gym/DatosEmpresaTabs";
 import { DatosGeneralesForm } from "@/components/gym/DatosGeneralesForm";
+import { EliminarEmpresaCard } from "@/components/gym/EliminarEmpresa";
 import { EstadoCard } from "@/components/gym/EstadoCard";
 import { FacturacionCard } from "@/components/gym/FacturacionCard";
 import { UsuariosCard } from "@/components/gym/UsuariosCard";
@@ -63,6 +64,7 @@ function UrlRow({ label, url }: { label: string; url: string }) {
 
 export default function GymEmpresaDetallePage() {
   const { id } = useParams<{ id: string }>();
+  const router = useRouter();
   const { data, setData, error, initialLoading, loading, reload } = useGymData<{ data: GymEmpresaDetalle }>(
     /^\d+$/.test(id) ? `empresas/${id}` : null,
   );
@@ -227,6 +229,7 @@ export default function GymEmpresaDetallePage() {
             </SectionCard>
 
             <EstadoCard empresa={empresa} onSaved={onSaved} />
+            <EliminarEmpresaCard empresa={empresa} onDeleted={() => router.replace(GYM_EMPRESAS)} />
           </aside>
         </div>
       )}

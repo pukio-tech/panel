@@ -27,6 +27,7 @@ import {
   PlanBadge,
   useEntrarComoAdmin,
 } from "@/components/gym/shared";
+import { EliminarEmpresaDialog } from "@/components/gym/EliminarEmpresa";
 
 type Tab = "todas" | "activas" | "suspendidas";
 
@@ -41,6 +42,7 @@ export default function GymEmpresasPage() {
   const { entrar, pendingId } = useEntrarComoAdmin();
   const [search, setSearch] = useState("");
   const [tab, setTab] = useState<Tab>("todas");
+  const [eliminar, setEliminar] = useState<GymEmpresaResumen | null>(null);
 
   const empresas = useMemo(() => data?.data ?? [], [data]);
   const counts = useMemo(
@@ -142,6 +144,7 @@ export default function GymEmpresasPage() {
               hint: !e.activo ? "Oculto mientras está suspendida" : undefined,
               onSelect: () => window.open(`${GYM_APP_URL}/catalogo/${e.slug}`, "_blank", "noopener"),
             },
+            { label: "Eliminar", danger: true, onSelect: () => setEliminar(e) },
           ]}
         />
       ),
@@ -229,6 +232,15 @@ export default function GymEmpresasPage() {
             />
           )
         }
+      />
+
+      <EliminarEmpresaDialog
+        empresa={eliminar}
+        onClose={() => setEliminar(null)}
+        onDeleted={() => {
+          setEliminar(null);
+          reload();
+        }}
       />
     </>
   );

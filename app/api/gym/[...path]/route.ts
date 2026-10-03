@@ -112,3 +112,6 @@ export async function POST(req: Request, ctx: Ctx) {
 export async function PATCH(req: Request, ctx: Ctx) {
   return proxy(req, ctx);
 }
+export async function DELETE(req: Request, ctx: Ctx) {
+  return proxy(req, ctx);
+}
