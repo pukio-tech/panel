@@ -269,9 +269,9 @@ export default function GymPlanesPage() {
         open={editando !== null}
         onClose={() => !saving && setEditando(null)}
         size="lg"
-        title={nuevo ? "Nuevo plan" : `Editar plan · ${editando && editando !== "nuevo" ? editando.nombre : ""}`}
+        title={nuevo ? "Nuevo plan" : `Editar plan · ${editando ? editando.nombre : ""}`}
         description={
-          !nuevo && editando && editando !== "nuevo" && editando.empresas > 0
+          !nuevo && editando && editando.empresas > 0
             ? `Lo usan ${formatInt(editando.empresas)} empresa${editando.empresas === 1 ? "" : "s"}: los cambios de límites aplican de inmediato.`
             : undefined
         }
