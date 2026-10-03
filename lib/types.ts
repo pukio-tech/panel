@@ -21,7 +21,7 @@ export interface LoginResponse {
   success: boolean;
   accessToken: string;
   tokenType: string;
-  user: { id: string; email: string; name?: string | null; role: string };
+  user: { id: string; email: string; name?: string | null; role: string; apps?: string[] };
 }
 
 /** Registro de turismo.recursos (código MINCETUR o >= 900001 si es manual). */
@@ -169,4 +169,33 @@ export interface MuseumOptions {
   administrations: string[];
   statuses: string[];
   departments: Option[];
+}
+
+/* ------------------------------------------------------------------ */
+/* Usuarios del panel y accesos por app                                */
+/* ------------------------------------------------------------------ */
+
+/** ADMIN = superadministrador (todas las apps + usuarios). EDITOR = solo apps asignadas. */
+export type PanelRole = "ADMIN" | "EDITOR";
+
+export interface PanelUser {
+  id: string;
+  email: string;
+  name: string | null;
+  role: PanelRole | "USER";
+  active: boolean;
+  lastLoginAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  /** Apps asignadas (vacío para ADMIN, que ve todas). */
+  apps: string[];
+}
+
+export interface PanelAppInfo {
+  id: string;
+  name: string;
+  description: string | null;
+  active: boolean;
+  /** Usuarios no ADMIN con acceso asignado */
+  users: number;
 }

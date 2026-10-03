@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { getActiveItem, getAppByPath } from "@/lib/apps";
+import { getActiveItem, getAppByPath, seccionesVisibles } from "@/lib/apps";
 import type { SessionUser } from "@/lib/api";
 import { cn, titleCase } from "@/lib/utils";
 import { LayersIcon, LogoutIcon, SearchIcon } from "@/components/icons";
@@ -68,7 +68,7 @@ export function Sidebar({
 
         {/* Navegación: grupos separados por una línea, sin títulos */}
         <nav className="scroll-thin mt-3 flex-1 overflow-y-auto px-3 pb-4" aria-label={app.name}>
-          {app.sections.map((section, i) => (
+          {seccionesVisibles(app, user).map((section, i) => (
             <div key={section.title}>
               {i > 0 && <div className="mx-2 my-2.5 border-t border-line" role="separator" />}
               <ul className="space-y-0.5" aria-label={section.title}>

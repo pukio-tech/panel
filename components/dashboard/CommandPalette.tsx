@@ -2,7 +2,8 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { MANAGED_APPS } from "@/lib/apps";
+import { appsDelUsuario, seccionesVisibles } from "@/lib/apps";
+import { useSessionUser } from "@/lib/hooks/useSessionUser";
 import { cn } from "@/lib/utils";
 import { SearchIcon } from "@/components/icons";
 import { Kbd } from "@/components/ui";
@@ -17,14 +18,6 @@ interface Command {
   keywords: string;
 }
 
-/** Acciones rápidas adicionales a los ítems del menú. */
-const EXTRA: Omit<Command, "id">[] = [
-  { label: "Crear lugar turístico", group: "Acciones", href: "/dashboard/opendata/lugares/nuevo", icon: "map", keywords: "nuevo" },
-  { label: "Crear museo", group: "Acciones", href: "/dashboard/opendata/museos/nuevo", icon: "landmark", keywords: "nuevo" },
-  { label: "Crear empresa", group: "Acciones", href: "/dashboard/opendata/empresas/nuevo", icon: "building", keywords: "nuevo ruc" },
-  { label: "Escribir artículo", group: "Acciones", href: "/dashboard/opendata/blog/nuevo", icon: "file", keywords: "nuevo post" },
-];
-
 const normalize = (s: string) =>
   s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
 
@@ -33,10 +26,13 @@ export function CommandPalette({ open, onClose }: { open: boolean; onClose: () =
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [term, setTerm] = useState("");
   const [index, setIndex] = useState(0);
+  const user = useSessionUser();
 
   const commands = useMemo<Command[]>(() => {
-    const nav = MANAGED_APPS.flatMap((app) =>
-      app.sections.flatMap((s) =>
+    // Solo las apps (e ítems) a las que el usuario tiene acceso
+    const apps = appsDelUsuario(user);
+    const nav = apps.flatMap((app) =>
+      seccionesVisibles(app, user).flatMap((s) =>
         s.items.map((i) => ({
           id: i.href,
           label: i.label,
@@ -47,8 +43,19 @@ export function CommandPalette({ open, onClose }: { open: boolean; onClose: () =
         })),
       ),
     );
-    return [...nav, ...EXTRA.map((e) => ({ ...e, id: e.href }))];
-  }, []);
+    // Acciones rápidas de todas las apps
+    const actions = apps.flatMap((app) =>
+      (app.quickActions ?? []).map((a) => ({
+        id: a.href,
+        label: a.paletteLabel ?? a.label,
+        group: "Acciones",
+        href: a.href,
+        icon: a.icon,
+        keywords: `${a.keywords ?? ""} ${app.name}`.trim(),
+      })),
+    );
+    return [...nav, ...actions];
+  }, [user]);
 
   const results = useMemo(() => {
     const q = normalize(term.trim());

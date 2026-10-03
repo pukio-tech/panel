@@ -2,9 +2,13 @@ import type { IconName } from "@/lib/apps";
 import {
   ActivityIcon,
   BuildingIcon,
+  DumbbellIcon,
   FileIcon,
   LandmarkIcon,
+  LayersIcon,
   MapPinIcon,
+  UserIcon,
+  UsersIcon,
 } from "@/components/icons";
 
 export const NAV_ICONS: Record<IconName, typeof ActivityIcon> = {
@@ -13,4 +17,8 @@ export const NAV_ICONS: Record<IconName, typeof ActivityIcon> = {
   landmark: LandmarkIcon,
   building: BuildingIcon,
   file: FileIcon,
+  dumbbell: DumbbellIcon,
+  layers: LayersIcon,
+  users: UsersIcon,
+  user: UserIcon,
 };

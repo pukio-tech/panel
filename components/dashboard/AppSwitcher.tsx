@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { MANAGED_APPS, type ManagedApp } from "@/lib/apps";
+import { appsDelUsuario, type ManagedApp } from "@/lib/apps";
+import { useSessionUser } from "@/lib/hooks/useSessionUser";
 import { cn } from "@/lib/utils";
 import { CheckIcon, ChevronsUpDownIcon, PlusIcon } from "@/components/icons";
 
@@ -11,6 +12,11 @@ export function AppSwitcher({ current }: { current: ManagedApp }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const user = useSessionUser();
+  // Solo las apps asignadas al usuario; las internas (Configuración) van al final
+  const apps = appsDelUsuario(user);
+  const negocio = apps.filter((a) => !a.system);
+  const internas = apps.filter((a) => a.system);
 
   useEffect(() => {
     if (!open) return;
@@ -25,6 +31,28 @@ export function AppSwitcher({ current }: { current: ManagedApp }) {
       document.removeEventListener("keydown", onKey);
     };
   }, [open]);
+
+  const renderApp = (app: ManagedApp) => (
+    <button
+      key={app.id}
+      type="button"
+      role="option"
+      aria-selected={app.id === current.id}
+      disabled={!app.enabled}
+      onClick={() => {
+        setOpen(false);
+        if (app.id !== current.id) router.push(app.basePath);
+      }}
+      className="flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-left text-sm text-ink hover:bg-hover disabled:opacity-50"
+    >
+      <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: app.color }} />
+      <span className="min-w-0 flex-1">
+        <span className="block truncate font-medium">{app.name}</span>
+        <span className="block truncate text-xs text-muted">{app.description}</span>
+      </span>
+      {app.id === current.id && <CheckIcon width={16} height={16} />}
+    </button>
+  );
 
   return (
     <div ref={ref} className="relative min-w-0">
@@ -50,27 +78,10 @@ export function AppSwitcher({ current }: { current: ManagedApp }) {
           className="absolute left-0 z-30 mt-1.5 w-72 rounded-xl border border-line bg-surface p-1.5 shadow-[0_4px_16px_rgba(0,0,0,0.08),0_1px_2px_rgba(0,0,0,0.04)]"
         >
           <p className="px-2.5 pb-1.5 pt-1 text-xs text-muted">Aplicaciones</p>
-          {MANAGED_APPS.map((app) => (
-            <button
-              key={app.id}
-              type="button"
-              role="option"
-              aria-selected={app.id === current.id}
-              disabled={!app.enabled}
-              onClick={() => {
-                setOpen(false);
-                if (app.id !== current.id) router.push(app.basePath);
-              }}
-              className="flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-left text-sm text-ink hover:bg-hover disabled:opacity-50"
-            >
-              <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: app.color }} />
-              <span className="min-w-0 flex-1">
-                <span className="block truncate font-medium">{app.name}</span>
-                <span className="block truncate text-xs text-muted">{app.description}</span>
-              </span>
-              {app.id === current.id && <CheckIcon width={16} height={16} />}
-            </button>
-          ))}
+          {negocio.map(renderApp)}
+          {negocio.length === 0 && <p className="px-2.5 py-2 text-sm text-muted">No tienes apps asignadas.</p>}
+          {internas.length > 0 && <div className="my-1 border-t border-line" role="separator" />}
+          {internas.map(renderApp)}
           <div className="mt-1 flex items-center gap-2.5 border-t border-line px-2.5 pb-1 pt-2.5 text-sm text-subtle">
             <PlusIcon width={14} height={14} />
             Próximamente más apps
