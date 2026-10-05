@@ -68,6 +68,11 @@ export interface GymEmpresaDetalle extends Omit<GymEmpresaResumen, "metricas" | 
   facturacionRuc: string | null;
   facturacionApiKeyConfigurada: boolean;
   consultaApiTokenConfigurado: boolean;
+  /** Últimos 4 caracteres ("••••-mqf") para reconocer la credencial guardada */
+  facturacionApiKeyPista: string | null;
+  consultaApiTokenPista: string | null;
+  /** Vencimiento del token de consultas (ISO), si es un JWT con exp */
+  consultaApiTokenVence: string | null;
   fechaModificacion: string | null;
   /** Marca del gimnasio en Gym Manager (null = tema por defecto) */
   apariencia: GymApariencia;

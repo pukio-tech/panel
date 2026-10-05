@@ -265,6 +265,10 @@ export function PasswordInput({
         value={value}
         placeholder={placeholder}
         autoComplete={autoComplete}
+        // Evita que gestores de contraseñas rellenen credenciales de la empresa con claves guardadas
+        data-1p-ignore
+        data-lpignore="true"
+        data-bwignore
         aria-invalid={invalid || undefined}
         disabled={disabled}
         onChange={(e) => onChange(e.target.value)}

@@ -3,7 +3,7 @@
 import { useState, type FormEvent } from "react";
 import type { GymEmpresaDetalle, GymEmpresaInput } from "@/lib/gym-types";
 import { gymApi } from "@/lib/gym-api";
-import { validateRuc } from "@/lib/gym-utils";
+import { formatDate, validateRuc } from "@/lib/gym-utils";
 import { Alert, Badge, Button, Field, Input, useToast } from "@/components/ui";
 import { errorMessage, PasswordInput, SectionCard } from "./shared";
 
@@ -17,6 +17,8 @@ function SecretField({
   id,
   label,
   configured,
+  pista,
+  vence,
   state,
   onChange,
   hint,
@@ -25,16 +27,28 @@ function SecretField({
   id: string;
   label: string;
   configured: boolean;
+  /** Últimos caracteres de la credencial guardada */
+  pista?: string | null;
+  /** Vencimiento (ISO) si la credencial lo tiene */
+  vence?: string | null;
   state: SecretState;
   onChange: (s: SecretState) => void;
   hint: string;
   disabled?: boolean;
 }) {
+  // Hora fijada al montar (no en cada render)
+  const [ahora] = useState(() => Date.now());
+  const vencida = !!vence && new Date(vence).getTime() < ahora;
   const status = state.clear ? (
     <Badge tone="warning">Se quitará al guardar</Badge>
+  ) : configured && vencida ? (
+    <Badge tone="danger" dot>
+      Vencida el {formatDate(vence)}
+    </Badge>
   ) : configured ? (
     <Badge tone="success" dot>
-      Configurada
+      Configurada{pista ? ` · ${pista}` : ""}
+      {vence ? ` · vence ${formatDate(vence)}` : ""}
     </Badge>
   ) : (
     <Badge tone="outline">Usa la clave global</Badge>
@@ -58,12 +72,12 @@ function SecretField({
             id={id}
             value={state.value}
             disabled={disabled || state.clear}
-            autoComplete="off"
+            autoComplete="new-password"
             placeholder={
               state.clear
                 ? "Se quitará la credencial propia"
                 : configured
-                  ? "Configurada — deja vacío para mantener"
+                  ? `${pista ?? "Configurada"} — escribe solo para reemplazarla`
                   : "No configurada"
             }
             onChange={(value) => onChange({ value, clear: false })}
@@ -174,6 +188,7 @@ export function FacturacionCard({
                 className="font-mono"
                 value={ruc}
                 placeholder={empresa.ruc ?? ""}
+                autoComplete="off"
                 aria-invalid={Boolean(ruc && rucError) || undefined}
                 onChange={(e) => setRuc(e.target.value.replace(/\D/g, ""))}
               />
@@ -182,6 +197,7 @@ export function FacturacionCard({
               id="f-apikey"
               label="API key de facturación"
               configured={empresa.facturacionApiKeyConfigurada}
+              pista={empresa.facturacionApiKeyPista}
               state={apiKey}
               onChange={setApiKey}
               disabled={saving}
@@ -191,6 +207,8 @@ export function FacturacionCard({
               id="f-token"
               label="Token de consultas DNI/RUC"
               configured={empresa.consultaApiTokenConfigurado}
+              pista={empresa.consultaApiTokenPista}
+              vence={empresa.consultaApiTokenVence}
               state={token}
               onChange={setToken}
               disabled={saving}
