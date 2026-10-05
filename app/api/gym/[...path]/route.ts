@@ -54,7 +54,15 @@ function json(status: number, error: string) {
 }
 
 // Solo se exponen estas rutas de la API de plataforma
-const PERMITIDAS = /^(resumen|upload|modulos|planes(\/\d+)?|empresas(\/\d+(\/(acceso|socios|productos|usuarios(\/\d+)?))?)?)$/;
+const PERMITIDAS = [
+  /^(resumen|upload|modulos)$/,
+  /^planes(\/\d+)?$/,
+  /^empresas(\/\d+(\/(acceso|socios|productos|suscripcion|usuarios(\/\d+)?))?)?$/,
+  // Cobranza de la plataforma
+  /^cobranza\/resumen$/,
+  /^cobranza\/cobros(\/generar|\/\d+(\/pagos(\/\d+)?)?)?$/,
+  /^cotizaciones(\/\d+(\/aceptar)?)?$/,
+];
 
 async function proxy(req: Request, { params }: Ctx) {
   const clave = process.env.GYM_PLATFORM_API_KEY;
@@ -70,7 +78,7 @@ async function proxy(req: Request, { params }: Ctx) {
   }
 
   const ruta = (await params).path.join("/");
-  if (!PERMITIDAS.test(ruta)) return json(404, "Ruta no disponible");
+  if (!PERMITIDAS.some((r) => r.test(ruta))) return json(404, "Ruta no disponible");
 
   const destino = new URL(`${GYM_APP}/api/plataforma/${ruta}`);
   new URL(req.url).searchParams.forEach((v, k) => destino.searchParams.set(k, v));

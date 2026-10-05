@@ -7,8 +7,10 @@ import {
   LandmarkIcon,
   LayersIcon,
   MapPinIcon,
+  ReceiptIcon,
   UserIcon,
   UsersIcon,
+  WalletIcon,
 } from "@/components/icons";
 
 export const NAV_ICONS: Record<IconName, typeof ActivityIcon> = {
@@ -21,4 +23,6 @@ export const NAV_ICONS: Record<IconName, typeof ActivityIcon> = {
   layers: LayersIcon,
   users: UsersIcon,
   user: UserIcon,
+  wallet: WalletIcon,
+  receipt: ReceiptIcon,
 };

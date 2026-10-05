@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import type { GymEmpresaDetalle } from "@/lib/gym-types";
 import { formatDate, formatInt, formatPEN, formatRelative, moduloCorto } from "@/lib/gym-utils";
 import { useGymData } from "@/lib/hooks/useGymData";
@@ -25,6 +25,7 @@ import { DatosGeneralesForm } from "@/components/gym/DatosGeneralesForm";
 import { EliminarEmpresaCard } from "@/components/gym/EliminarEmpresa";
 import { EstadoCard } from "@/components/gym/EstadoCard";
 import { ModulosCard } from "@/components/gym/ModulosCard";
+import { CobranzaEmpresa } from "@/components/gym/CobranzaEmpresa";
 import { FacturacionCard } from "@/components/gym/FacturacionCard";
 import { UsuariosCard } from "@/components/gym/UsuariosCard";
 import {
@@ -39,7 +40,8 @@ import {
   UsoLimite,
 } from "@/components/gym/shared";
 
-type Pestana = "general" | "modulos" | "apariencia" | "socios" | "productos";
+type Pestana = "general" | "cobranza" | "modulos" | "apariencia" | "socios" | "productos";
+const PESTANAS: Pestana[] = ["general", "cobranza", "modulos", "apariencia", "socios", "productos"];
 
 function UrlRow({ label, url }: { label: string; url: string }) {
   const toast = useToast();
@@ -73,7 +75,9 @@ export default function GymEmpresaDetallePage() {
   const { entrar, pendingId } = useEntrarComoAdmin();
   // Remonta los formularios tras guardar para que tomen los nuevos valores iniciales
   const [version, setVersion] = useState(0);
-  const [pestana, setPestana] = useState<Pestana>("general");
+  // ?tab=cobranza abre directamente esa pestaña (enlaces desde Cobranza)
+  const tabInicial = useSearchParams().get("tab");
+  const [pestana, setPestana] = useState<Pestana>(PESTANAS.includes(tabInicial as Pestana) ? (tabInicial as Pestana) : "general");
   const empresa = data?.data;
 
   function onSaved(e: GymEmpresaDetalle) {
@@ -189,6 +193,7 @@ export default function GymEmpresaDetallePage() {
         onChange={setPestana}
         options={[
           { value: "general", label: "General" },
+          { value: "cobranza", label: "Cobranza" },
           { value: "modulos", label: "Módulos", count: empresa.modulos.filter((x) => x.activo).length },
           { value: "apariencia", label: "Apariencia" },
           { value: "socios", label: "Socios", count: m.sociosActivos },
@@ -196,6 +201,7 @@ export default function GymEmpresaDetallePage() {
         ]}
       />
 
+      {pestana === "cobranza" && <CobranzaEmpresa empresa={empresa} />}
       {pestana === "modulos" && <ModulosCard empresa={empresa} onSaved={onSaved} />}
       {pestana === "apariencia" && <AparienciaCard key={`ap-${version}`} empresa={empresa} onSaved={onSaved} />}
       {pestana === "socios" && <SociosTab empresaId={empresa.id} />}

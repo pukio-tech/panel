@@ -8,8 +8,11 @@ const PAD = { top: 12, right: 8, bottom: 26, left: 64 };
 
 const dayFmt = new Intl.DateTimeFormat("es-PE", { day: "numeric", month: "short" });
 const longDayFmt = new Intl.DateTimeFormat("es-PE", { weekday: "long", day: "numeric", month: "long" });
+const monthFmt = new Intl.DateTimeFormat("es-PE", { month: "short", year: "2-digit" });
+const longMonthFmt = new Intl.DateTimeFormat("es-PE", { month: "long", year: "numeric" });
 
 function toDate(fecha: string) {
+  if (/^\d{4}-\d{2}$/.test(fecha)) return new Date(`${fecha}-01T00:00:00`);
   return /^\d{4}-\d{2}-\d{2}$/.test(fecha) ? new Date(`${fecha}T00:00:00`) : new Date(fecha);
 }
 
@@ -22,8 +25,18 @@ function niceMax(value: number): number {
   return nice * exp;
 }
 
-/** Gráfico de barras de ingresos diarios en SVG plano (sin dependencias). */
-export function RevenueChart({ data }: { data: { fecha: string; total: number }[] }) {
+/** Gráfico de barras de ingresos (diarios o mensuales) en SVG plano (sin dependencias). */
+export function RevenueChart({
+  data,
+  granularidad = "dia",
+}: {
+  /** fecha: YYYY-MM-DD (por día) o YYYY-MM (por mes) */
+  data: { fecha: string; total: number }[];
+  granularidad?: "dia" | "mes";
+}) {
+  const porMes = granularidad === "mes";
+  const corto = porMes ? monthFmt : dayFmt;
+  const largo = porMes ? longMonthFmt : longDayFmt;
   const ref = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(0);
   const [hover, setHover] = useState<number | null>(null);
@@ -50,12 +63,13 @@ export function RevenueChart({ data }: { data: { fecha: string; total: number }[
   const plotH = HEIGHT - PAD.top - PAD.bottom;
   const slot = data.length ? plotW / data.length : 0;
   const barW = Math.max(2, Math.min(28, slot * 0.68));
-  const labelEvery = width < 480 ? 7 : width < 800 ? 5 : 3;
+  const labelEvery = porMes ? (width < 480 ? 3 : width < 800 ? 2 : 1) : width < 480 ? 7 : width < 800 ? 5 : 3;
   const y = (v: number) => PAD.top + plotH - (v / yMax) * plotH;
 
   const active = hover != null ? data[hover] : null;
-  const summary = `Ingresos diarios de los últimos ${data.length} días. Total ${formatPEN(total)}.${
-    maxPoint && maxPoint.total > 0 ? ` Día más alto: ${longDayFmt.format(toDate(maxPoint.fecha))} con ${formatPEN(maxPoint.total)}.` : ""
+  const unidad = porMes ? "meses" : "días";
+  const summary = `Ingresos de los últimos ${data.length} ${unidad}. Total ${formatPEN(total)}.${
+    maxPoint && maxPoint.total > 0 ? ` ${porMes ? "Mes" : "Día"} más alto: ${largo.format(toDate(maxPoint.fecha))} con ${formatPEN(maxPoint.total)}.` : ""
   }`;
 
   return (
@@ -64,13 +78,13 @@ export function RevenueChart({ data }: { data: { fecha: string; total: number }[
         <p className="text-sm text-muted">
           {active ? (
             <>
-              <span className="capitalize">{longDayFmt.format(toDate(active.fecha))}</span>
+              <span className="capitalize">{largo.format(toDate(active.fecha))}</span>
               {" · "}
               <span className="font-medium tabular-nums text-ink">{formatPEN(active.total)}</span>
             </>
           ) : (
             <>
-              Total {data.length} días: <span className="font-medium tabular-nums text-ink">{formatPEN(total)}</span>
+              Total {data.length} {unidad}: <span className="font-medium tabular-nums text-ink">{formatPEN(total)}</span>
             </>
           )}
         </p>
@@ -86,7 +100,7 @@ export function RevenueChart({ data }: { data: { fecha: string; total: number }[
             className="block select-none"
             onMouseLeave={() => setHover(null)}
           >
-            <title id={titleId}>Ingresos diarios (S/)</title>
+            <title id={titleId}>{porMes ? "Ingresos mensuales (S/)" : "Ingresos diarios (S/)"}</title>
             <desc id={descId}>{summary}</desc>
 
             {/* Rejilla y eje Y */}
@@ -119,7 +133,7 @@ export function RevenueChart({ data }: { data: { fecha: string; total: number }[
               const cx = PAD.left + slot * i + slot / 2;
               const h = Math.max(d.total > 0 ? 2 : 0, y(0) - y(d.total));
               const isActive = hover === i;
-              const label = `${dayFmt.format(toDate(d.fecha))}: ${formatPEN(d.total)}`;
+              const label = `${corto.format(toDate(d.fecha))}: ${formatPEN(d.total)}`;
               return (
                 <g key={d.fecha} onMouseEnter={() => setHover(i)}>
                   {/* Zona de hover de toda la columna */}
@@ -146,7 +160,7 @@ export function RevenueChart({ data }: { data: { fecha: string; total: number }[
                       fontSize="11"
                       fill={isActive ? "var(--ink)" : "var(--subtle)"}
                     >
-                      {dayFmt.format(toDate(d.fecha))}
+                      {corto.format(toDate(d.fecha))}
                     </text>
                   )}
                 </g>

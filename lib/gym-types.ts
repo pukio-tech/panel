@@ -214,3 +214,188 @@ export interface GymNuevaEmpresa extends GymEmpresaInput {
   nombre: string;
   admin: { username: string; password: string; pin?: string | null };
 }
+
+/* ------------------------------------------------------------------ */
+/* Cobranza de la plataforma (lo que PUKIO cobra a cada gimnasio)       */
+/* ------------------------------------------------------------------ */
+
+export type GymConceptoCobro = "MENSUALIDAD" | "IMPLEMENTACION" | "SERVICIO" | "OTRO";
+export type GymEstadoCobro = "PENDIENTE" | "PAGADO" | "ANULADO";
+/** Estado efectivo: VENCIDO = pendiente con fecha de vencimiento pasada */
+export type GymSituacionCobro = GymEstadoCobro | "VENCIDO";
+export type GymMetodoPago = "TRANSFERENCIA" | "YAPE" | "PLIN" | "EFECTIVO" | "TARJETA" | "OTRO";
+
+export interface GymCobro {
+  id: number;
+  empresa: { id: number; nombre: string; slug: string };
+  concepto: GymConceptoCobro;
+  /** YYYY-MM-DD (primer día del mes) en mensualidades */
+  periodo: string | null;
+  descripcion: string;
+  subtotal: number;
+  igv: number;
+  total: number;
+  pagado: number;
+  saldo: number;
+  fechaEmision: string;
+  fechaVencimiento: string;
+  estado: GymEstadoCobro;
+  situacion: GymSituacionCobro;
+  diasVencido: number;
+  cotizacionId: number | null;
+  creadoPor: string;
+}
+
+export interface GymPagoCobro {
+  id: number;
+  fecha: string;
+  monto: number;
+  metodo: GymMetodoPago;
+  referencia: string | null;
+  notas: string | null;
+  anulado: boolean;
+  registradoPor: string;
+  fechaRegistro: string;
+}
+
+export interface GymCobroEvento {
+  id: number;
+  tipo: "CREADO" | "PAGO" | "PAGO_ANULADO" | "ANULADO" | "VENCIMIENTO" | string;
+  detalle: string;
+  usuario: string;
+  fecha: string;
+}
+
+export interface GymCobroDetalle extends GymCobro {
+  cotizacion: { id: number; numero: string } | null;
+  pagos: GymPagoCobro[];
+  eventos: GymCobroEvento[];
+}
+
+export interface GymResumenCobranza {
+  totales: {
+    cobradoMes: number;
+    cobradoMesAnterior: number;
+    mrr: number;
+    suscripcionesActivas: number;
+    porCobrar: number;
+    porCobrarCantidad: number;
+    vencido: number;
+    vencidoCantidad: number;
+    proximos30: number;
+    cobradoAnio: number;
+  };
+  /** 12 meses, mes = YYYY-MM */
+  ingresosMensuales: { mes: string; total: number }[];
+  vencidos: GymCobro[];
+  proximos: GymCobro[];
+  /** Mensualidades estimadas del mes siguiente (aún no emitidas) */
+  proyectadas: {
+    empresa: { id: number; nombre: string; slug: string };
+    descripcion: string;
+    fechaEmision: string;
+    fechaVencimiento: string;
+    total: number;
+  }[];
+  ultimosPagos: {
+    id: number;
+    fecha: string;
+    monto: number;
+    metodo: GymMetodoPago;
+    referencia: string | null;
+    cobro: { id: number; descripcion: string; empresa: { id: number; nombre: string } };
+  }[];
+  actividad: { id: number; tipo: string; detalle: string; usuario: string; fecha: string; cobroId: number; empresa: string }[];
+  sinSuscripcion: { id: number; nombre: string; slug: string }[];
+}
+
+export interface GymSuscripcion {
+  configurada: boolean;
+  plan: string;
+  /** Sin IGV */
+  precioMensual: number;
+  /** Con IGV si aplica */
+  totalMensual: number;
+  aplicaIgv: boolean;
+  diaCobro: number;
+  diasCredito: number;
+  /** YYYY-MM-DD (primer día del mes) */
+  fechaInicio: string;
+  activo: boolean;
+  notas: string | null;
+  fechaModificacion: string | null;
+}
+
+export type GymEstadoCotizacion = "BORRADOR" | "ENVIADA" | "ACEPTADA" | "RECHAZADA";
+
+export interface GymCotizacionItem {
+  id?: number;
+  tipo: "MENSUAL" | "UNICO";
+  descripcion: string;
+  cantidad: number;
+  precioUnitario: number;
+}
+
+interface GymMontos {
+  subtotal: number;
+  igv: number;
+  total: number;
+}
+
+export interface GymTotalesCotizacion {
+  igvTasa: number;
+  mensualBruto: number;
+  unicoBruto: number;
+  descuentoMensual: number;
+  descuentoUnico: number;
+  mensual: GymMontos;
+  unico: GymMontos;
+  inicial: GymMontos;
+  anio1: { subtotal: number; total: number };
+}
+
+export interface GymCotizacion {
+  id: number;
+  numero: string;
+  fecha: string;
+  validezDias: number;
+  venceEl: string;
+  vencida: boolean;
+  empresa: { id: number; nombre: string; slug: string } | null;
+  clienteNombre: string;
+  clienteDocumento: string | null;
+  contacto: string | null;
+  telefono: string | null;
+  email: string | null;
+  plan: { id: number; codigo: string; nombre: string } | null;
+  aplicaIgv: boolean;
+  primeraMensualidadAlInicio: boolean;
+  descuentoMensualPct: number;
+  descuentoUnicoPct: number;
+  estado: GymEstadoCotizacion;
+  notas: string | null;
+  creadoPor: string;
+  fechaCreacion: string;
+  fechaModificacion: string | null;
+  items: GymCotizacionItem[];
+  cobros: { id: number; concepto: GymConceptoCobro; total: number; estado: GymEstadoCobro }[];
+  totales: GymTotalesCotizacion;
+}
+
+export interface GymCotizacionInput {
+  fecha: string;
+  validezDias: number;
+  empresaId: number | null;
+  clienteNombre: string;
+  clienteDocumento: string | null;
+  contacto: string | null;
+  telefono: string | null;
+  email: string | null;
+  planId: number | null;
+  aplicaIgv: boolean;
+  primeraMensualidadAlInicio: boolean;
+  descuentoMensualPct: number;
+  descuentoUnicoPct: number;
+  notas: string | null;
+  items: GymCotizacionItem[];
+}

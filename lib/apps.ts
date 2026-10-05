@@ -4,7 +4,7 @@
  * el sidebar, el breadcrumb y la paleta ⌘K se construyen a partir de esto.
  */
 
-export type IconName = "activity" | "map" | "landmark" | "building" | "file" | "dumbbell" | "layers" | "users" | "user";
+export type IconName = "activity" | "map" | "landmark" | "building" | "file" | "dumbbell" | "layers" | "users" | "user" | "wallet" | "receipt";
 
 export interface AppMenuItem {
   label: string;
@@ -164,8 +164,38 @@ export const MANAGED_APPS: ManagedApp[] = [
           },
         ],
       },
+      {
+        title: "Cobranza",
+        items: [
+          {
+            label: "Ingresos",
+            href: "/dashboard/gym/cobranza",
+            icon: "wallet",
+            keywords: "cobranza ingresos dashboard mrr pagos vencidos",
+          },
+          {
+            label: "Cobros y pagos",
+            href: "/dashboard/gym/cobranza/cobros",
+            icon: "receipt",
+            keywords: "mensualidades cobros pagos registrar pago trazabilidad",
+          },
+          {
+            label: "Cotizaciones",
+            href: "/dashboard/gym/cobranza/cotizaciones",
+            icon: "file",
+            keywords: "cotizar propuesta presupuesto cliente",
+          },
+        ],
+      },
     ],
     quickActions: [
+      {
+        label: "Nueva cotización",
+        paletteLabel: "Nueva cotización (Gym Manager)",
+        href: "/dashboard/gym/cobranza/cotizaciones/nueva",
+        icon: "file",
+        keywords: "cotizar propuesta presupuesto",
+      },
       {
         label: "Nueva empresa",
         paletteLabel: "Nueva empresa (Gym Manager)",

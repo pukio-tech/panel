@@ -217,3 +217,55 @@ export function generatePassword(length = 14): string {
   }
   return chars.join("");
 }
+
+/* ------------------------------------------------------------------ */
+/* Cotizaciones (mismo cálculo que src/server/plataforma/cotizaciones) */
+/* ------------------------------------------------------------------ */
+
+/** Datos del emisor que salen en la cotización (hoja Catálogo del cotizador). */
+export const PUKIO_EMISOR = {
+  nombre: "PUKIO TECH",
+  telefono: "+51 948780961",
+  email: "contacto.pukio@gmail.com",
+  web: "gym.pukio.lat",
+  mediosPago: "Transferencia BCP / Yape",
+};
+
+export const IGV_TASA = 0.18;
+
+const r2 = (n: number) => Math.round((n + Number.EPSILON) * 100) / 100;
+
+function montosCot(subtotal: number, aplicaIgv: boolean) {
+  const s = r2(subtotal);
+  const igv = aplicaIgv ? r2(s * IGV_TASA) : 0;
+  return { subtotal: s, igv, total: r2(s + igv) };
+}
+
+/** Totales de una cotización: mensual, único, cobro inicial y total del primer año. */
+export function totalesCotizacion(c: {
+  items: { tipo: "MENSUAL" | "UNICO"; cantidad: number; precioUnitario: number }[];
+  aplicaIgv: boolean;
+  primeraMensualidadAlInicio: boolean;
+  descuentoMensualPct: number;
+  descuentoUnicoPct: number;
+}) {
+  const bruto = (tipo: "MENSUAL" | "UNICO") =>
+    r2(c.items.filter((i) => i.tipo === tipo).reduce((s, i) => s + (i.cantidad || 0) * (i.precioUnitario || 0), 0));
+  const mensualBruto = bruto("MENSUAL");
+  const unicoBruto = bruto("UNICO");
+  const mensual = montosCot(mensualBruto * (1 - (c.descuentoMensualPct || 0) / 100), c.aplicaIgv);
+  const unico = montosCot(unicoBruto * (1 - (c.descuentoUnicoPct || 0) / 100), c.aplicaIgv);
+  const inicial = montosCot(unico.subtotal + (c.primeraMensualidadAlInicio ? mensual.subtotal : 0), c.aplicaIgv);
+  const meses = c.primeraMensualidadAlInicio ? 11 : 12;
+  return {
+    igvTasa: c.aplicaIgv ? IGV_TASA : 0,
+    mensualBruto,
+    unicoBruto,
+    descuentoMensual: r2(mensualBruto - mensual.subtotal),
+    descuentoUnico: r2(unicoBruto - unico.subtotal),
+    mensual,
+    unico,
+    inicial,
+    anio1: { subtotal: r2(inicial.subtotal + mensual.subtotal * meses), total: r2(inicial.total + mensual.total * meses) },
+  };
+}
