@@ -1,6 +1,6 @@
 /** Utilidades de la sección Gym Manager: formato (es-PE), planes y reglas de validación. */
 import type { BadgeTone } from "@/components/ui";
-import type { GymPlan } from "@/lib/gym-types";
+import type { GymModuloCodigo, GymPlan } from "@/lib/gym-types";
 
 /* ------------------------------------------------------------------ */
 /* Formato                                                             */
@@ -91,6 +91,39 @@ export function porcentajeUso(usados: number, maximo: number | null): number | n
 }
 
 export const PLAN_CODIGO_RE = /^[A-Z0-9_]{2,30}$/;
+
+/* ------------------------------------------------------------------ */
+/* Módulos opcionales (mismas claves que src/lib/modulos.ts de gym-app) */
+/* ------------------------------------------------------------------ */
+
+export const GYM_MODULOS: { codigo: GymModuloCodigo; nombre: string; corto: string; descripcion: string }[] = [
+  {
+    codigo: "FACTURACION",
+    nombre: "Facturación electrónica SUNAT",
+    corto: "Facturación",
+    descripcion: "Boletas y facturas electrónicas desde el punto de venta. Sin él, solo notas de venta.",
+  },
+  {
+    codigo: "CONSULTAS",
+    nombre: "Consultas DNI / RUC",
+    corto: "Consultas",
+    descripcion: "Autocompleta nombres y razón social (RENIEC / SUNAT). Sin él, se escriben a mano.",
+  },
+  {
+    codigo: "CATALOGO",
+    nombre: "Tienda online y catálogo",
+    corto: "Catálogo",
+    descripcion: "Catálogo público, solicitudes online y pagos Yape / BCP con voucher.",
+  },
+  {
+    codigo: "CORREOS",
+    nombre: "Correos automáticos",
+    corto: "Correos",
+    descripcion: "Avisos de vencimiento, confirmaciones de plan y estado de pedidos.",
+  },
+];
+
+export const moduloCorto = (codigo: string) => GYM_MODULOS.find((m) => m.codigo === codigo)?.corto ?? codigo;
 
 /* ------------------------------------------------------------------ */
 /* Apariencia (mismas claves que src/lib/tipografias.ts de gym-app)    */

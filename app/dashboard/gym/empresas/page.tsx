@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { GymEmpresaResumen } from "@/lib/gym-types";
 import { GYM_APP_URL } from "@/lib/gym-api";
-import { formatDate, formatInt, formatPEN, formatUso } from "@/lib/gym-utils";
+import { formatDate, formatInt, formatPEN, formatUso, GYM_MODULOS, moduloCorto } from "@/lib/gym-utils";
 import { useGymData } from "@/lib/hooks/useGymData";
 import {
   Alert,
@@ -85,6 +85,23 @@ export default function GymEmpresasPage() {
       cell: (e) => (e.ruc ? <span className="whitespace-nowrap font-mono text-xs">{e.ruc}</span> : <span className="text-subtle">—</span>),
     },
     { key: "plan", header: "Plan", hideOnMobile: true, cell: (e) => <PlanBadge plan={e.plan} nombre={e.planNombre} /> },
+    {
+      key: "modulos",
+      header: "Módulos",
+      hideOnMobile: true,
+      cell: (e) => {
+        const activos = e.modulos ?? [];
+        return (
+          <span
+            className="whitespace-nowrap text-[13px] text-muted"
+            title={GYM_MODULOS.map((m) => `${activos.includes(m.codigo) ? "✓" : "–"} ${m.nombre}`).join("\n")}
+          >
+            <span className="font-medium tabular-nums text-ink">{activos.length}</span>/{GYM_MODULOS.length}
+            {activos.length > 0 && <span className="ml-1.5">{activos.map(moduloCorto).join(", ")}</span>}
+          </span>
+        );
+      },
+    },
     { key: "estado", header: "Estado", cell: (e) => <EstadoBadge activo={e.activo} /> },
     {
       key: "socios",
@@ -140,8 +157,12 @@ export default function GymEmpresasPage() {
             },
             {
               label: "Abrir catálogo",
-              disabled: !e.activo,
-              hint: !e.activo ? "Oculto mientras está suspendida" : undefined,
+              disabled: !e.activo || !e.modulos?.includes("CATALOGO"),
+              hint: !e.activo
+                ? "Oculto mientras está suspendida"
+                : !e.modulos?.includes("CATALOGO")
+                  ? "Su plan no incluye tienda online"
+                  : undefined,
               onSelect: () => window.open(`${GYM_APP_URL}/catalogo/${e.slug}`, "_blank", "noopener"),
             },
             { label: "Eliminar", danger: true, onSelect: () => setEliminar(e) },

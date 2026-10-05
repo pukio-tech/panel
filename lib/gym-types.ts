@@ -29,6 +29,8 @@ export interface GymEmpresaResumen {
   activo: boolean;
   motivoSuspension: string | null;
   fechaCreacion: string;
+  /** Módulos opcionales activos */
+  modulos: GymModuloCodigo[];
   metricas: GymMetricas;
 }
 
@@ -57,7 +59,7 @@ export interface GymUsuario {
   fechaCreacion: string | null;
 }
 
-export interface GymEmpresaDetalle extends Omit<GymEmpresaResumen, "metricas"> {
+export interface GymEmpresaDetalle extends Omit<GymEmpresaResumen, "metricas" | "modulos"> {
   razonSocial: string | null;
   direccion: string | null;
   telefono: string | null;
@@ -69,6 +71,8 @@ export interface GymEmpresaDetalle extends Omit<GymEmpresaResumen, "metricas"> {
   fechaModificacion: string | null;
   /** Marca del gimnasio en Gym Manager (null = tema por defecto) */
   apariencia: GymApariencia;
+  /** Módulos opcionales: incluidos por el plan y ajustes propios */
+  modulos: GymEmpresaModulo[];
   /** Últimos 20 cambios de estado (alta, suspensiones, reactivaciones) */
   historialEstado: { id: number; activo: boolean; motivo: string | null; usuario: string; fecha: string }[];
   metricas: GymMetricas;
@@ -112,15 +116,48 @@ export interface GymProducto {
   categoria: string | null;
 }
 
+/** Módulos opcionales (mismas claves que src/lib/modulos.ts de gym-app). */
+export type GymModuloCodigo = "FACTURACION" | "CONSULTAS" | "CATALOGO" | "CORREOS";
+
+export interface GymModulo {
+  codigo: GymModuloCodigo;
+  nombre: string;
+  descripcion: string | null;
+  orden: number;
+}
+
+/** Estado de un módulo en una empresa: lo que dice su plan y su ajuste propio. */
+export interface GymEmpresaModulo {
+  codigo: GymModuloCodigo;
+  nombre: string;
+  descripcion: string;
+  incluidoEnPlan: boolean;
+  /** true = activado aparte, false = desactivado aparte, null = según el plan */
+  ajuste: boolean | null;
+  motivo: string | null;
+  /** Resultado final */
+  activo: boolean;
+}
+
 export interface GymPlanPlataforma {
   id: number;
   codigo: string;
   nombre: string;
   descripcion: string | null;
+  /** Mensualidad sin IGV */
   precioMensual: number;
+  /** Pago único de implementación sin IGV */
+  precioImplementacion: number;
   maxSocios: number | null;
   maxUsuarios: number | null;
+  /** Consultas DNI/RUC por mes (null = sin tope definido) */
+  consultasMes: number | null;
+  soporte: string | null;
+  destacado: boolean;
+  orden: number;
   activo: boolean;
+  modulos: GymModuloCodigo[];
+  caracteristicas: string[];
   /** Empresas que lo usan */
   empresas: number;
 }
@@ -131,10 +168,17 @@ export interface GymPlanInput {
   nombre?: string;
   descripcion?: string | null;
   precioMensual?: number;
+  precioImplementacion?: number;
   /** null = ilimitado */
   maxSocios?: number | null;
   maxUsuarios?: number | null;
+  consultasMes?: number | null;
+  soporte?: string | null;
+  destacado?: boolean;
+  orden?: number;
   activo?: boolean;
+  modulos?: GymModuloCodigo[];
+  caracteristicas?: string[];
 }
 
 export interface GymEmpresaInput {
@@ -156,6 +200,8 @@ export interface GymEmpresaInput {
   consultaApiToken?: string | null;
   colorPrimario?: string | null;
   tipografia?: string | null;
+  /** Ajustes de módulos: activo null = volver a lo que diga el plan */
+  modulos?: { codigo: GymModuloCodigo; activo: boolean | null; motivo?: string | null }[];
 }
 
 export interface GymNuevaEmpresa extends GymEmpresaInput {

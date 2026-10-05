@@ -24,7 +24,9 @@ export function buttonClasses(
   className?: string,
 ) {
   return cn(
-    "inline-flex shrink-0 items-center justify-center rounded-md font-medium whitespace-nowrap transition-colors",
+    // Respuesta al presionar: escala sutil (0.97) con curva rápida; sin escala si se reduce el movimiento
+    "inline-flex shrink-0 items-center justify-center rounded-md font-medium whitespace-nowrap",
+    "transition-[background-color,color,transform] duration-150 ease-[var(--ease-out)] active:scale-[0.97] motion-reduce:active:scale-100",
     "focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-focus",
     "disabled:pointer-events-none disabled:opacity-50",
     variants[variant],
@@ -96,7 +98,8 @@ export function IconButton({
       aria-label={label}
       title={label}
       className={cn(
-        "inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-line bg-surface text-muted transition-colors",
+        "inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-line bg-surface text-muted",
+        "transition-[background-color,color,transform] duration-150 ease-[var(--ease-out)] active:scale-[0.95] motion-reduce:active:scale-100",
         "hover:bg-hover hover:text-ink focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-focus",
         "disabled:pointer-events-none disabled:opacity-50",
         className,

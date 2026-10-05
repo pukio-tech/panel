@@ -48,7 +48,8 @@ export function Modal({
       onClose={onClose}
       onClick={(e) => e.target === ref.current && onClose()}
       className={cn(
-        "m-auto w-[calc(100%-2rem)] rounded-xl border border-line bg-surface p-0 text-ink shadow-2xl backdrop:bg-black/40",
+        // ui-modal: entrada/salida en globals.css (centrado, desde 0.96, 200ms ease-out)
+        "ui-modal m-auto w-[calc(100%-2rem)] rounded-xl border border-line bg-surface p-0 text-ink shadow-2xl",
         { sm: "max-w-sm", md: "max-w-md", lg: "max-w-2xl" }[size],
       )}
     >

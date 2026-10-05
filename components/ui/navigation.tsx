@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
 
@@ -233,8 +233,17 @@ export function Menu({
             // Los eventos de React atraviesan el portal: evita que el clic
             // llegue al onClick de la fila de la tabla.
             onClick={(e) => e.stopPropagation()}
-            style={{ left: pos.left, top: pos.top, bottom: pos.bottom, width: MENU_WIDTH }}
-            className="fixed z-50 rounded-xl border border-line bg-surface p-1.5 text-left shadow-[0_4px_16px_rgba(0,0,0,0.08),0_1px_2px_rgba(0,0,0,0.04)]"
+            style={
+              {
+                left: pos.left,
+                top: pos.top,
+                bottom: pos.bottom,
+                width: MENU_WIDTH,
+                // Escala desde el disparador: arriba si abre hacia abajo, abajo si abre hacia arriba
+                "--origin": `${pos.bottom !== undefined ? "bottom" : "top"} ${align === "right" ? "right" : "left"}`,
+              } as CSSProperties
+            }
+            className="ui-popover fixed z-50 rounded-xl border border-line bg-surface p-1.5 text-left shadow-[0_4px_16px_rgba(0,0,0,0.08),0_1px_2px_rgba(0,0,0,0.04)]"
           >
             {items.map((item) =>
               item.href && !item.disabled ? (

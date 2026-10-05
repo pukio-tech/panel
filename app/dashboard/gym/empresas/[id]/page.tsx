@@ -3,10 +3,11 @@
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import type { GymEmpresaDetalle } from "@/lib/gym-types";
-import { formatDate, formatInt, formatPEN, formatRelative } from "@/lib/gym-utils";
+import { formatDate, formatInt, formatPEN, formatRelative, moduloCorto } from "@/lib/gym-utils";
 import { useGymData } from "@/lib/hooks/useGymData";
 import {
   Alert,
+  Badge,
   Button,
   ButtonLink,
   EmptyState,
@@ -23,6 +24,7 @@ import { ProductosTab, SociosTab } from "@/components/gym/DatosEmpresaTabs";
 import { DatosGeneralesForm } from "@/components/gym/DatosGeneralesForm";
 import { EliminarEmpresaCard } from "@/components/gym/EliminarEmpresa";
 import { EstadoCard } from "@/components/gym/EstadoCard";
+import { ModulosCard } from "@/components/gym/ModulosCard";
 import { FacturacionCard } from "@/components/gym/FacturacionCard";
 import { UsuariosCard } from "@/components/gym/UsuariosCard";
 import {
@@ -37,7 +39,7 @@ import {
   UsoLimite,
 } from "@/components/gym/shared";
 
-type Pestana = "general" | "apariencia" | "socios" | "productos";
+type Pestana = "general" | "modulos" | "apariencia" | "socios" | "productos";
 
 function UrlRow({ label, url }: { label: string; url: string }) {
   const toast = useToast();
@@ -187,12 +189,14 @@ export default function GymEmpresaDetallePage() {
         onChange={setPestana}
         options={[
           { value: "general", label: "General" },
+          { value: "modulos", label: "Módulos", count: empresa.modulos.filter((x) => x.activo).length },
           { value: "apariencia", label: "Apariencia" },
           { value: "socios", label: "Socios", count: m.sociosActivos },
           { value: "productos", label: "Productos" },
         ]}
       />
 
+      {pestana === "modulos" && <ModulosCard empresa={empresa} onSaved={onSaved} />}
       {pestana === "apariencia" && <AparienciaCard key={`ap-${version}`} empresa={empresa} onSaved={onSaved} />}
       {pestana === "socios" && <SociosTab empresaId={empresa.id} />}
       {pestana === "productos" && <ProductosTab empresaId={empresa.id} />}
@@ -219,12 +223,35 @@ export default function GymEmpresaDetallePage() {
                 <UsoLimite label="Socios activos" usados={m.sociosActivos} maximo={empresa.limites.maxSocios} />
                 <UsoLimite label="Usuarios activos" usados={m.usuariosActivos} maximo={empresa.limites.maxUsuarios} />
               </div>
+              <div className="mt-5 border-t border-line pt-4">
+                <div className="flex items-center justify-between gap-2">
+                  <h3 className="text-xs font-medium uppercase tracking-wide text-muted">Módulos</h3>
+                  <button
+                    type="button"
+                    onClick={() => setPestana("modulos")}
+                    className="rounded text-[13px] font-medium text-accent hover:underline focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-focus"
+                  >
+                    Gestionar
+                  </button>
+                </div>
+                <ul className="mt-2 flex flex-wrap gap-1.5">
+                  {empresa.modulos.map((mod) => (
+                    <li key={mod.codigo}>
+                      <Badge tone={mod.activo ? "success" : "neutral"} className={mod.activo ? undefined : "line-through"}>
+                        {moduloCorto(mod.codigo)}
+                      </Badge>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </SectionCard>
 
             <SectionCard title="Accesos" description="Enlaces de la empresa en Gym Manager.">
               <div className="space-y-4">
                 <UrlRow label="Login del gimnasio" url={empresa.urls.login} />
-                <UrlRow label="Catálogo público" url={empresa.urls.catalogo} />
+                {empresa.modulos.some((x) => x.codigo === "CATALOGO" && x.activo) && (
+                  <UrlRow label="Catálogo público" url={empresa.urls.catalogo} />
+                )}
               </div>
             </SectionCard>
 
